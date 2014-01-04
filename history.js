@@ -121,6 +121,7 @@ Ember.History = Em.Mixin.create({
     //The before observer saves adds the element with the value it was before the change
     _beforeChange: function(element, prop, value) {
         if(!History.isUndo() && !History.isRedo() && History.isActive()) {
+            if(arguments.length == 2) { value = element.get(prop); }
             History.pushState({
                 element: element,
                 property: prop,
@@ -131,6 +132,7 @@ Ember.History = Em.Mixin.create({
     //This method updates the last state and adds the current value
     _afterChange: function(element, prop, value) {
         if(!History.isUndo() && !History.isRedo() && History.isActive()) {
+            if(arguments.length == 2) { value = element.get(prop); }
             History.updateLastState(value);
         }
     }
