@@ -115,6 +115,8 @@ Ember.History = Em.Mixin.create({
             Ember.addBeforeObserver($this, item, $this, '_beforeChange');
             Ember.addObserver($this, item, $this, '_afterChange');
         });
+
+        return this._super();
     },
     //The before observer saves adds the element with the value it was before the change
     _beforeChange: function(element, prop, value) {
