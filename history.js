@@ -102,6 +102,21 @@ UndoHistory = {
     },
     isRedo: function() {
         return this._isRedo;
+    },
+    registerKeyboardShortcuts: function() {
+        this._keyboardHandler = Ember.$(document).on('keydown', function(e) {
+            if(e.which == 90 && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+
+                if(e.shiftKey) {
+                    UndoHistory.redo();
+                } else {
+                    UndoHistory.undo();
+                }
+                return false;
+            }
+            return true;
+        });
     }
 }
 
