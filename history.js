@@ -110,6 +110,13 @@ Ember.History = Em.Mixin.create({
     //Initiate and add observers for the object properties
     init: function(){
         var props = this.get('_trackProperties');
+        if(!props) {
+            props = [];
+            this.constructor.eachComputedProperty(function(p, m) {
+                if(m.isAttribute) { props.push(m.name); }
+            });
+        }
+
         var $this = this;
         props.forEach(function(item) {
             Ember.addBeforeObserver($this, item, $this, '_beforeChange');
