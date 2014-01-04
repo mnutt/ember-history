@@ -5,29 +5,29 @@
  * @license MIT
  */
 History = {
-    
+
     _max: 30, //max number of states we store
     _states: [], //array of states
     _index: -1, //current index
-    
+
     //these are needed for a check when pushing a state
-    
+
     _isUndo: false,
     _isRedo: false,
     _active: true,
-    
+
     disable: function() {
         this._active = false;
     },
-    
+
     enable: function() {
         this._active = true;
     },
-    
+
     isActive: function() {
         return this._active;
     },
-    
+
     /**
      * Clear all history entries
      */
@@ -106,7 +106,7 @@ History = {
 }
 
 Ember.History = Em.Mixin.create({
-    
+
     //Initiate and add observers for the object properties
     init: function(){
         var props = this.get('_trackProperties');
