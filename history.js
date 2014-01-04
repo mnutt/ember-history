@@ -4,7 +4,7 @@
  * @url http://blog.iber.co.uk/javascript/2012/06/28/emberjs-history-with-undo-redo/
  * @license MIT
  */
-History = {
+UndoHistory = {
 
     _max: 30, //max number of states we store
     _states: [], //array of states
@@ -127,9 +127,9 @@ Ember.History = Em.Mixin.create({
     },
     //The before observer saves adds the element with the value it was before the change
     _beforeChange: function(element, prop, value) {
-        if(!History.isUndo() && !History.isRedo() && History.isActive()) {
+        if(!UndoHistory.isUndo() && !UndoHistory.isRedo() && UndoHistory.isActive()) {
             if(arguments.length == 2) { value = element.get(prop); }
-            History.pushState({
+            UndoHistory.pushState({
                 element: element,
                 property: prop,
                 before: value
@@ -138,9 +138,9 @@ Ember.History = Em.Mixin.create({
     },
     //This method updates the last state and adds the current value
     _afterChange: function(element, prop, value) {
-        if(!History.isUndo() && !History.isRedo() && History.isActive()) {
+        if(!UndoHistory.isUndo() && !UndoHistory.isRedo() && UndoHistory.isActive()) {
             if(arguments.length == 2) { value = element.get(prop); }
-            History.updateLastState(value);
+            UndoHistory.updateLastState(value);
         }
     }
 });
