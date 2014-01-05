@@ -163,6 +163,8 @@ Ember.History = Em.Mixin.create({
             Ember.addObserver($this, item, $this, '_afterChange');
         });
 
+        this._beforeProps = {};
+
         return this._super();
     },
     //The before observer saves adds the element with the value it was before the change
@@ -170,19 +172,24 @@ Ember.History = Em.Mixin.create({
 
         if(UndoHistory.isActive()) {
             if(arguments.length == 2) { value = element.get(prop); }
-            UndoHistory.pushState({
-                element: element,
-                property: prop,
-                before: value,
-                timestamp: Date.now()
-            });
+            this._beforeProps[prop] = value;
         }
     },
     //This method updates the last state and adds the current value
     _afterChange: function(element, prop, value) {
         if(UndoHistory.isActive()) {
             if(arguments.length == 2) { value = element.get(prop); }
-            UndoHistory.updateLastState(prop, value);
+
+            var before = this._beforeProps[prop];
+            delete this._beforeProps[prop];
+
+            UndoHistory.pushState({
+                element: element,
+                property: prop,
+                before: before,
+                after: value,
+                timestamp: Date.now()
+            });
         }
     }
 });
