@@ -6,11 +6,12 @@
  */
 UndoHistory = {
 
-    _max: 30, //max number of states we store
-    _states: [], //array of states
-    _index: -1, //current index
+    _max: 30,       // max number of states we store
+    _states: [],    // array of states
+    _index: -1,     // current index
+    _interval: 300, // interval under which we group changes, in ms
 
-    //these are needed for a check when pushing a state
+    // these are needed for a check when pushing a state
 
     _isUndo: false,
     _isRedo: false,
@@ -40,18 +41,35 @@ UndoHistory = {
      */
     pushState: function(obj) {
         this.clearFuture();
-        this._states[this._index+1] = obj;
-        this._index++;
+
+        if(this.isPartOfExistingState(obj)) {
+            this._states[this._index].push(obj);
+        } else {
+            this._states[this._index+1] = [obj];
+            this._index++;
+        }
+
         if(this._states.length > this._max) {
             this._states = this._states.slice(1, this._states.length);
             this._index = this._states.length-1;
         }
     },
+    isPartOfExistingState: function(obj) {
+        var existing = this._states[this._index];
+        if(!existing) return false
+        return obj.timestamp - existing[0].timestamp < this._interval;
+    },
     /**
      * Update last history state
      */
-    updateLastState: function(value) {
-        this._states[this._index].after = value;
+    updateLastState: function(prop, value) {
+        var stateGroup = this._states[this._index];
+        for(var i = stateGroup.length - 1; i >= 0; i--) {
+            if(stateGroup[i].property == prop) {
+                stateGroup[i].after = value;
+                return;
+            }
+        }
     },
     /**
      * This method clears all the states after the current index
@@ -65,15 +83,22 @@ UndoHistory = {
      * Load state for undo
      */
     loadUndoState: function(index) {
-        var obj = this._states[index];
-        obj.element.set( obj.property, obj.before );
+        var changes = this._states[index];
+        // iterate in reverse to go backwards
+        for(var i = changes.length - 1; i >= 0; i--) {
+            var obj = changes[i];
+            obj.element.set( obj.property, obj.before );
+        }
     },
     /**
      * Load state for redo
      */
     loadRedoState: function(index) {
-        var obj = this._states[index];
-        obj.element.set( obj.property, obj.after );
+        var changes = this._states[index];
+        for(var i = 0, len = changes.length; i < len; i++) {
+            var obj = changes[i];
+            obj.element.set( obj.property, obj.after );
+        }
     },
     /**
      * Do undo
@@ -147,7 +172,8 @@ Ember.History = Em.Mixin.create({
             UndoHistory.pushState({
                 element: element,
                 property: prop,
-                before: value
+                before: value,
+                timestamp: Date.now()
             });
         }
     },
@@ -155,7 +181,7 @@ Ember.History = Em.Mixin.create({
     _afterChange: function(element, prop, value) {
         if(!UndoHistory.isUndo() && !UndoHistory.isRedo() && UndoHistory.isActive()) {
             if(arguments.length == 2) { value = element.get(prop); }
-            UndoHistory.updateLastState(value);
+            UndoHistory.updateLastState(prop, value);
         }
     }
 });
