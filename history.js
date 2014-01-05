@@ -87,7 +87,7 @@ UndoHistory = {
         // iterate in reverse to go backwards
         for(var i = changes.length - 1; i >= 0; i--) {
             var obj = changes[i];
-            obj.element.set( obj.property, obj.before );
+            obj.undo();
         }
     },
     /**
@@ -97,7 +97,7 @@ UndoHistory = {
         var changes = this._states[index];
         for(var i = 0, len = changes.length; i < len; i++) {
             var obj = changes[i];
-            obj.element.set( obj.property, obj.after );
+            obj.redo();
         }
     },
     /**
@@ -186,8 +186,8 @@ Ember.History = Em.Mixin.create({
             UndoHistory.pushState({
                 element: element,
                 property: prop,
-                before: before,
-                after: value,
+                undo: function() { Ember.set(element, prop, before); },
+                redo: function() { Ember.set(element, prop, value); },
                 timestamp: Date.now()
             });
         }
