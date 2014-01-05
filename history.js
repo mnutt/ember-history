@@ -26,7 +26,7 @@ UndoHistory = {
     },
 
     isActive: function() {
-        return this._active;
+        return this._active && !this._isUndo && !this._isRedo;
     },
 
     /**
@@ -167,7 +167,8 @@ Ember.History = Em.Mixin.create({
     },
     //The before observer saves adds the element with the value it was before the change
     _beforeChange: function(element, prop, value) {
-        if(!UndoHistory.isUndo() && !UndoHistory.isRedo() && UndoHistory.isActive()) {
+
+        if(UndoHistory.isActive()) {
             if(arguments.length == 2) { value = element.get(prop); }
             UndoHistory.pushState({
                 element: element,
@@ -179,7 +180,7 @@ Ember.History = Em.Mixin.create({
     },
     //This method updates the last state and adds the current value
     _afterChange: function(element, prop, value) {
-        if(!UndoHistory.isUndo() && !UndoHistory.isRedo() && UndoHistory.isActive()) {
+        if(UndoHistory.isActive()) {
             if(arguments.length == 2) { value = element.get(prop); }
             UndoHistory.updateLastState(prop, value);
         }
