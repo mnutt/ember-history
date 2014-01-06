@@ -156,16 +156,22 @@ Ember.History = Em.Mixin.create({
         var props = this.get('_trackProperties');
         if(!props) {
             props = [];
-            this.constructor.eachComputedProperty(function(p, m) {
-                if(m.isAttribute) { props.push(m.name); }
+            this.constructor.eachComputedProperty(function(name, prop) {
+                if(prop.isAttribute || prop.kind === "hasMany") {
+                  props.push(name);
+                }
             });
         }
 
-        var $this = this;
         props.forEach(function(item) {
-            Ember.addBeforeObserver($this, item, $this, '_beforeChange');
-            Ember.addObserver($this, item, $this, '_afterChange');
-        });
+            Ember.addBeforeObserver(this, item, this, '_beforeChange');
+            Ember.addObserver(this, item, this, '_afterChange');
+
+            var value = this.get(item);
+            if(Ember.typeOf(value) === "array" || Ember.typeOf(value) === "instance") {
+                value.addArrayObserver(this);
+            }
+        }, this);
 
         this._beforeProps = {};
 
@@ -173,27 +179,76 @@ Ember.History = Em.Mixin.create({
     },
     //The before observer saves adds the element with the value it was before the change
     _beforeChange: function(element, prop, value) {
+        if(!UndoHistory.isActive()) { return; }
 
-        if(UndoHistory.isActive()) {
-            if(arguments.length == 2) { value = element.get(prop); }
-            this._beforeProps[prop] = value;
+        if(arguments.length == 2) { value = element.get(prop); }
+        this._beforeProps[prop] = value;
+
+        // check if the property is an array
+        if (Ember.typeOf(value) === 'array' || Ember.typeOf(value) === 'instance') {
+            value.removeArrayObserver(this);
         }
     },
     //This method updates the last state and adds the current value
     _afterChange: function(element, prop, value) {
-        if(UndoHistory.isActive()) {
-            if(arguments.length == 2) { value = element.get(prop); }
+        if(!UndoHistory.isActive()) { return; }
 
-            var before = this._beforeProps[prop];
-            delete this._beforeProps[prop];
+        if(arguments.length == 2) { value = element.get(prop); }
 
-            UndoHistory.pushState({
-                element: element,
-                property: prop,
-                undo: function() { Ember.set(element, prop, before); },
-                redo: function() { Ember.set(element, prop, value); },
-                timestamp: Date.now()
-            });
+        // check if the property is an array
+        if (Ember.typeOf(value) === 'array' || Ember.typeOf(value) === 'instance') {
+            value.addArrayObserver(this);
         }
+
+        var before = this._beforeProps[prop];
+        delete this._beforeProps[prop];
+
+        if(typeof(before) === "undefined") { return; }
+
+        UndoHistory.pushState({
+            element: element,
+            property: prop,
+            before: before,
+            after: value,
+            undo: function() { Ember.set(element, prop, before); },
+            redo: function() { Ember.set(element, prop, value); },
+            timestamp: Date.now()
+        });
+    },
+    //Records array removals
+    arrayWillChange: function(array, startIndex, removeCount, addCount) {
+        if (removeCount === 0 || !UndoHistory.isActive()) { return; }
+
+        var elements = array.slice(startIndex, startIndex + removeCount);
+        UndoHistory.pushState({
+            element: array,
+            removes: removeCount,
+            property: array.name,
+            undo: function() {
+                array.get('content').replace(startIndex, 0, elements);
+            },
+            redo: function() {
+                array.get('content').replace(startIndex, removeCount);
+            },
+            timestamp: Date.now()
+        });
+    },
+    //Records array additions
+    arrayDidChange: function(array, startIndex, removeCount, addCount) {
+        if (addCount === 0 || !UndoHistory.isActive()) { return; }
+
+        var elements = array.slice(startIndex, startIndex + addCount);
+        UndoHistory.pushState({
+            element: array,
+            property: array.name,
+            adds: addCount,
+            undo: function() {
+                array.get('content').replace(startIndex, addCount);
+            },
+            redo: function() {
+                array.get('content').replace(startIndex, 0, elements);
+            },
+            timestamp: Date.now()
+        });
     }
 });
