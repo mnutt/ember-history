@@ -135,8 +135,10 @@ UndoHistory = {
 
                 if(e.shiftKey) {
                     UndoHistory.redo();
+                    Ember.$(document).trigger('redo');
                 } else {
                     UndoHistory.undo();
+                    Ember.$(document).trigger('undo');
                 }
                 return false;
             }
