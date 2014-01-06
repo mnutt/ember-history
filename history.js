@@ -151,6 +151,8 @@ Ember.History = Em.Mixin.create({
 
     //Initiate and add observers for the object properties
     init: function(){
+        var retVal = this._super();
+
         var props = this.get('_trackProperties');
         if(!props) {
             props = [];
@@ -167,7 +169,7 @@ Ember.History = Em.Mixin.create({
 
         this._beforeProps = {};
 
-        return this._super();
+        return retVal;
     },
     //The before observer saves adds the element with the value it was before the change
     _beforeChange: function(element, prop, value) {
