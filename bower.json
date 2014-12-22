@@ -1,0 +1,27 @@
+{
+  "name": "ember-history",
+  "version": "0.0.1",
+  "homepage": "https://github.com/mnutt/ember-history",
+  "authors": [
+    "Michael Nutt <michael@nuttnet.net>"
+  ],
+  "description": "Undo/redo support for ember objects",
+  "main": "history.js",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "history",
+    "undo",
+    "redo",
+    "ember"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
