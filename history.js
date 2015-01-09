@@ -225,10 +225,10 @@ Ember.History = Em.Mixin.create({
             removes: removeCount,
             property: array.name,
             undo: function() {
-                array.get('content').replace(startIndex, 0, elements);
+                array.replace(startIndex, 0, elements);
             },
             redo: function() {
-                array.get('content').replace(startIndex, removeCount);
+                array.replace(startIndex, removeCount);
             },
             timestamp: Date.now()
         });
@@ -243,10 +243,10 @@ Ember.History = Em.Mixin.create({
             property: array.name,
             adds: addCount,
             undo: function() {
-                array.get('content').replace(startIndex, addCount);
+                array.replace(startIndex, addCount);
             },
             redo: function() {
-                array.get('content').replace(startIndex, 0, elements);
+                array.replace(startIndex, 0, elements);
             },
             timestamp: Date.now()
         });
